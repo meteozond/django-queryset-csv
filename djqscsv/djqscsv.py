@@ -23,7 +23,7 @@ from cStringIO import StringIO
 ########################################
 
 
-def render_to_csv_response(queryset, filename=None, append_datestamp=False):
+def render_to_csv_response(queryset, filename=None, append_datestamp=False, dialect='excel'):
     """
     provides the boilerplate for making a CSV http response.
     takes a filename or generates one from the queryset's model.
@@ -40,7 +40,7 @@ def render_to_csv_response(queryset, filename=None, append_datestamp=False):
     response['Content-Disposition'] = 'attachment; filename=%s;' % filename
     response['Cache-Control'] = 'no-cache'
 
-    _write_csv_data(queryset, response)
+    _write_csv_data(queryset, response, dialect=dialect)
 
     return response
 
@@ -80,7 +80,7 @@ class CSVException(Exception):
     pass
 
 
-def _write_csv_data(queryset, file_obj, verbose_field_names=None):
+def _write_csv_data(queryset, file_obj, verbose_field_names=None, dialect='excel'):
 
     # add BOM to suppor CSVs in MS Excel
     file_obj.write(u'\ufeff'.encode('utf8'))
@@ -95,7 +95,7 @@ def _write_csv_data(queryset, file_obj, verbose_field_names=None):
     except AttributeError:
         raise CSVException("Empty queryset provided to exporter.")
 
-    writer = csv.DictWriter(file_obj, header_row)
+    writer = csv.DictWriter(file_obj, header_row, dialect=dialect)
     writer.writeheader()
 
     for record in values_qs:
